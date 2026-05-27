@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Coda Express Clipper</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="popup">
+      <header class="header">
+        <div class="title-row">
+          <h1>Save to Coda</h1>
+          <button
+            id="settingsButton"
+            class="settings-button"
+            type="button"
+            aria-expanded="false"
+            aria-controls="settingsPanel"
+          >
+            Settings
+          </button>
+        </div>
+        <p id="currentUrl" class="url">Loading current tab...</p>
+      </header>
+
+      <form id="clipForm" class="form">
+        <section id="settingsPanel" class="settings-panel" hidden>
+          <label>
+            Backend URL
+            <input
+              id="backendBaseUrl"
+              name="backendBaseUrl"
+              type="url"
+              placeholder="http://localhost:3000"
+              autocomplete="url"
+              required
+            >
+          </label>
+
+          <label>
+            Bookmark API key
+            <input
+              id="bookmarkApiKey"
+              name="bookmarkApiKey"
+              type="password"
+              placeholder="Private API key"
+              autocomplete="off"
+            >
+          </label>
+
+          <label>
+            Coda API token
+            <input
+              id="codaToken"
+              name="codaToken"
+              type="password"
+              placeholder="coda-..."
+              autocomplete="off"
+            >
+          </label>
+        </section>
+
+        <div class="field-with-action">
+          <label for="docId">
+            Coda doc
+          </label>
+          <div class="control-row">
+            <select id="docId" name="docId" required disabled>
+              <option value="">Enter a token to load docs</option>
+            </select>
+            <button id="refreshDocsButton" class="secondary-button" type="button">Refresh</button>
+          </div>
+        </div>
+
+        <label>
+          Coda table
+          <select id="tableId" name="tableId" required disabled>
+            <option value="">Select a doc first</option>
+          </select>
+        </label>
+
+        <label>
+          Saved location
+          <select id="savedLocationId" name="savedLocationId" disabled>
+            <option value="">No saved locations</option>
+          </select>
+        </label>
+
+        <div class="field-with-action">
+          <label for="savedLocationName">
+            Save current location
+          </label>
+          <div class="control-row">
+            <input
+              id="savedLocationName"
+              name="savedLocationName"
+              type="text"
+              placeholder="Wishlist, Reading list..."
+              autocomplete="off"
+            >
+            <button id="saveLocationButton" class="secondary-button" type="button">Save</button>
+          </div>
+        </div>
+
+        <button id="submitButton" type="submit">Save bookmark</button>
+      </form>
+
+      <section id="status" class="status" role="status" aria-live="polite"></section>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
