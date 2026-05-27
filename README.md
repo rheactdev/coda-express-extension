@@ -1,6 +1,6 @@
 # Coda Express Clipper
 
-A compact Chrome Manifest V3 extension for saving the current browser tab into a selected Coda table through a `coda-express` bookmark backend.
+A compact Chrome Manifest V3 extension for saving the current browser tab into a selected Coda table through the [`coda-express` bookmark backend](https://github.com/rheactdev/coda-express).
 
 The extension reads the active tab URL, lets you choose a Coda doc and table, and sends the bookmark to:
 
@@ -52,7 +52,7 @@ This is a plain JavaScript Manifest V3 extension. There is no build step require
 ## Requirements
 
 - Google Chrome or another Chromium browser that supports Manifest V3 extensions.
-- A running bookmark backend that exposes:
+- A running [`rheactdev/coda-express`](https://github.com/rheactdev/coda-express) bookmark backend that exposes:
 
   ```text
   POST /api/save-bookmark
@@ -302,4 +302,3 @@ The extension sends one request to `/api/save-bookmark` per successful click. If
 - Neither secret is sent in the JSON body.
 - Neither secret is sent in the query string.
 - Secrets are not written to popup status messages.
-
