@@ -4,26 +4,26 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Coda Express Clipper</title>
-    <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="output.css">
   </head>
-  <body>
-    <main class="popup">
-      <header class="header">
-        <div class="title-row">
-          <h1>Save to Coda</h1>
-          <div class="header-actions">
+  <body class="w-[360px] min-h-[460px] bg-base-200 text-base-content">
+    <main class="grid gap-4 p-4">
+      <header class="grid gap-2">
+        <div class="flex items-center justify-between gap-3">
+          <h1 class="text-xl font-bold leading-tight">Save to Coda</h1>
+          <div class="join">
             <button
               id="locationsButton"
-              class="header-button"
+              class="btn btn-soft btn-primary btn-xs join-item"
               type="button"
               aria-expanded="false"
               aria-controls="locationsPanel"
             >
-              Locations
+              Forms
             </button>
             <button
               id="settingsButton"
-              class="header-button"
+              class="btn btn-soft btn-primary btn-xs join-item"
               type="button"
               aria-expanded="false"
               aria-controls="settingsPanel"
@@ -32,94 +32,113 @@
             </button>
           </div>
         </div>
-        <p id="currentUrl" class="url">Loading current tab...</p>
+        <p id="currentUrl" class="line-clamp-2 [overflow-wrap:anywhere] text-xs leading-snug text-base-content/70">Loading current tab...</p>
       </header>
 
-      <form id="clipForm" class="form">
-        <section id="settingsPanel" class="settings-panel" hidden>
-          <label>
-            Backend URL
-            <input
-              id="backendBaseUrl"
-              name="backendBaseUrl"
-              type="url"
-              placeholder="http://localhost:3000"
-              autocomplete="url"
-              required
-            >
-          </label>
-
-          <label>
-            Bookmark API key
-            <input
-              id="bookmarkApiKey"
-              name="bookmarkApiKey"
-              type="password"
-              placeholder="Private API key"
-              autocomplete="off"
-            >
-          </label>
-
-          <label>
-            Coda API token
-            <input
-              id="codaToken"
-              name="codaToken"
-              type="password"
-              placeholder="coda-..."
-              autocomplete="off"
-            >
-          </label>
-        </section>
-
-        <section id="locationsPanel" class="settings-panel" hidden>
-          <div class="field-with-action">
-            <label for="docId">
-              Coda doc
-            </label>
-            <div class="control-row">
-              <select id="docId" name="docId" disabled>
-                <option value="">Enter a token to load docs</option>
-              </select>
-              <button id="refreshDocsButton" class="secondary-button" type="button">Refresh</button>
-            </div>
-          </div>
-
-          <label>
-            Coda table
-            <select id="tableId" name="tableId" disabled>
-              <option value="">Select a doc first</option>
-            </select>
-          </label>
-
-          <div class="field-with-action">
-            <label for="savedLocationName">
-              Save current location
-            </label>
-            <div class="control-row">
+      <form id="clipForm" class="grid gap-3">
+        <section id="settingsPanel" class="card bg-base-100 shadow-sm" hidden>
+          <div class="card-body gap-3 p-3">
+            <label class="grid gap-1">
+              <span class="label pb-1">
+                <span class="text-xs font-semibold">Backend URL</span>
+              </span>
               <input
-                id="savedLocationName"
-                name="savedLocationName"
-                type="text"
-                placeholder="Wishlist, Reading list..."
+                id="backendBaseUrl"
+                class="input input-sm w-full"
+                name="backendBaseUrl"
+                type="url"
+                placeholder="http://localhost:3000"
+                autocomplete="url"
+                required
+              >
+            </label>
+
+            <label class="grid gap-1">
+              <span class="label pb-1">
+                <span class="text-xs font-semibold">Bookmark API key</span>
+              </span>
+              <input
+                id="bookmarkApiKey"
+                class="input input-sm w-full"
+                name="bookmarkApiKey"
+                type="password"
+                placeholder="Private API key"
                 autocomplete="off"
               >
-              <button id="saveLocationButton" class="secondary-button" type="button">Save</button>
+            </label>
+
+            <label class="grid gap-1">
+              <span class="label pb-1">
+                <span class="text-xs font-semibold">Coda API token</span>
+              </span>
+              <input
+                id="codaToken"
+                class="input input-sm w-full"
+                name="codaToken"
+                type="password"
+                placeholder="coda-..."
+                autocomplete="off"
+              >
+            </label>
+          </div>
+        </section>
+
+        <section id="locationsPanel" class="card bg-base-100 shadow-sm" hidden>
+          <div class="card-body gap-3 p-3">
+            <div class="grid gap-1">
+              <label class="label pb-1" for="savedLocationName">
+                <span class="text-xs font-semibold">Form Name</span>
+              </label>
+              <div class="join w-full">
+                <input
+                  id="savedLocationName"
+                  class="input input-sm min-w-0 flex-1 join-item"
+                  name="savedLocationName"
+                  type="text"
+                  placeholder="Wishlist, Reading list..."
+                  autocomplete="off"
+                >
+                <button id="saveLocationButton" class="btn btn-soft btn-primary btn-sm join-item" type="button">Save</button>
+              </div>
+            <div class="grid gap-1">
+              <label class="label pb-1" for="docId">
+                <span class="text-xs font-semibold">Coda doc</span>
+              </label>
+              <div class="join w-full">
+                <select id="docId" class="select select-sm min-w-0 flex-1 join-item" name="docId" disabled>
+                  <option value="">Enter a token to load docs</option>
+                </select>
+                <button id="refreshDocsButton" class="btn btn-soft btn-primary btn-sm join-item" type="button">Refresh</button>
+              </div>
+            </div>
+
+            <label class="grid gap-1">
+              <span class="label pb-1">
+                <span class="text-xs font-semibold">Coda table</span>
+              </span>
+              <select id="tableId" class="select select-sm w-full" name="tableId" disabled>
+                <option value="">Select a doc first</option>
+              </select>
+            </label>
+
+            
             </div>
           </div>
         </section>
 
-        <label>
-          Saved location
-          <select id="savedLocationId" name="savedLocationId" disabled>
+        <label class="grid gap-1">
+          <span class="label pb-1">
+            <span class="text-xs font-semibold">Saved location</span>
+          </span>
+          <select id="savedLocationId" class="select select-sm w-full" name="savedLocationId" disabled>
             <option value="">No saved locations</option>
           </select>
         </label>
 
-        <button id="submitButton" type="submit">Save bookmark</button>
+        <button id="submitButton" class="btn btn-primary w-full" type="submit">Save bookmark</button>
       </form>
 
-      <section id="status" class="status" role="status" aria-live="polite"></section>
+      <section id="status" class="alert min-h-11 [overflow-wrap:anywhere] bg-base-100 text-xs leading-snug text-base-content/70" role="status" aria-live="polite"></section>
     </main>
 
     <script src="popup.js"></script>

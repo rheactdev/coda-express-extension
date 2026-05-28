@@ -687,11 +687,30 @@ function setDiscoveryLoading({ docs = isLoadingDocs, tables = isLoadingTables })
 
 function setStatus(message, state = "") {
   statusEl.textContent = message;
+  statusEl.className = getStatusClassName(state);
   if (state) {
     statusEl.dataset.state = state;
   } else {
     delete statusEl.dataset.state;
   }
+}
+
+function getStatusClassName(state) {
+  const baseClassName = "alert min-h-11 [overflow-wrap:anywhere] text-xs leading-snug";
+
+  if (state === "success") {
+    return `${baseClassName} alert-success`;
+  }
+
+  if (state === "error") {
+    return `${baseClassName} alert-error`;
+  }
+
+  if (state === "loading") {
+    return `${baseClassName} alert-info`;
+  }
+
+  return `${baseClassName} bg-base-100 text-base-content/70`;
 }
 
 function toSafeErrorMessage(error) {
