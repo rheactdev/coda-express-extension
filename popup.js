@@ -1,13 +1,16 @@
-const SETTINGS_KEYS = ["backendBaseUrl", "bookmarkApiKey", "codaToken", "docId", "tableId"];
+const SETTINGS_KEYS = ["backendBaseUrl", "bookmarkApiKey", "codaToken", "docId", "savedLocationId", "tableId"];
 const LOCAL_CACHE_KEY = "codaDiscoveryCache";
 const SAVED_LOCATIONS_KEY = "codaSavedLocations";
 const CODA_API_BASE_URL = "https://coda.io/apis/v1";
 const DISPLAY_URL_MAX_LENGTH = 180;
+const DEFAULT_DOC_ICON = "📄";
 
 const form = document.querySelector("#clipForm");
 const submitButton = document.querySelector("#submitButton");
 const settingsButton = document.querySelector("#settingsButton");
 const settingsPanel = document.querySelector("#settingsPanel");
+const locationsButton = document.querySelector("#locationsButton");
+const locationsPanel = document.querySelector("#locationsPanel");
 const refreshDocsButton = document.querySelector("#refreshDocsButton");
 const saveLocationButton = document.querySelector("#saveLocationButton");
 const statusEl = document.querySelector("#status");
@@ -35,6 +38,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await Promise.all([loadSettings(), loadDiscoveryCache(), loadSavedLocations(), loadCurrentTab()]);
   form.addEventListener("submit", handleSubmit);
   settingsButton.addEventListener("click", toggleSettingsPanel);
+  locationsButton.addEventListener("click", toggleLocationsPanel);
   refreshDocsButton.addEventListener("click", refreshDiscoveryCache);
   saveLocationButton.addEventListener("click", handleSaveLocation);
 
@@ -86,6 +90,9 @@ async function handleSubmit(event) {
   if (validationError) {
     if (!settings.backendBaseUrl || !settings.bookmarkApiKey || !settings.codaToken) {
       setSettingsPanelOpen(true);
+    }
+    if (!settings.savedLocationId && settings.backendBaseUrl && settings.bookmarkApiKey && settings.codaToken) {
+      setLocationsPanelOpen(true);
     }
     setStatus(validationError, "error");
     return;
@@ -206,11 +213,13 @@ async function handleSaveLocation() {
 
   const tokenFingerprint = getTokenFingerprint(settings.codaToken);
   const existing = savedLocations.find((location) => location.tokenFingerprint === tokenFingerprint && location.name.toLowerCase() === name.toLowerCase());
+  const doc = getCachedDoc(settings.docId);
   const location = {
     id: existing?.id ?? `location-${Date.now()}`,
     tokenFingerprint,
     name,
     docId: settings.docId,
+    docIcon: getDocIcon(doc),
     tableId: settings.tableId,
     docName: getSelectedOptionLabel(fields.docId),
     tableName: getSelectedOptionLabel(fields.tableId),
@@ -242,6 +251,21 @@ function toggleSettingsPanel() {
 function setSettingsPanelOpen(isOpen) {
   settingsPanel.hidden = !isOpen;
   settingsButton.setAttribute("aria-expanded", String(isOpen));
+  if (isOpen) {
+    setLocationsPanelOpen(false);
+  }
+}
+
+function toggleLocationsPanel() {
+  setLocationsPanelOpen(locationsButton.getAttribute("aria-expanded") !== "true");
+}
+
+function setLocationsPanelOpen(isOpen) {
+  locationsPanel.hidden = !isOpen;
+  locationsButton.setAttribute("aria-expanded", String(isOpen));
+  if (isOpen) {
+    setSettingsPanelOpen(false);
+  }
 }
 
 function getSettings() {
@@ -250,6 +274,7 @@ function getSettings() {
     bookmarkApiKey: fields.bookmarkApiKey.value.trim(),
     codaToken: fields.codaToken.value.trim(),
     docId: fields.docId.value.trim(),
+    savedLocationId: fields.savedLocationId.value.trim(),
     tableId: fields.tableId.value.trim(),
   };
 }
@@ -380,7 +405,7 @@ function renderSavedLocations({ selectedLocationId = "" } = {}) {
   fields.savedLocationId.replaceChildren(buildOption("", locations.length ? "Choose saved location" : "No saved locations"));
 
   for (const location of locations) {
-    fields.savedLocationId.append(buildOption(location.id, location.name));
+    fields.savedLocationId.append(buildOption(location.id, formatSavedLocationLabel(location)));
   }
 
   fields.savedLocationId.disabled = locations.length === 0;
@@ -419,6 +444,11 @@ function getCachedDoc(docId) {
 
 function getSelectedOptionLabel(select) {
   return select.selectedOptions[0]?.textContent ?? "";
+}
+
+function formatSavedLocationLabel(location) {
+  const docIcon = location.docIcon || getDocIcon(getCachedDoc(location.docId));
+  return `${docIcon} ${location.name}`;
 }
 
 async function fetchAllCodaItems(initialUrl, token) {
@@ -492,7 +522,8 @@ function resetTableSelect(message) {
 }
 
 function formatDocLabel(doc) {
-  return doc.name ? `${doc.name} (${doc.id})` : doc.id;
+  const label = doc.name ? `${doc.name} (${doc.id})` : doc.id;
+  return `${getDocIcon(doc)} ${label}`;
 }
 
 function formatTableLabel(table) {
@@ -502,6 +533,38 @@ function formatTableLabel(table) {
 
 function pluralize(word, count) {
   return count === 1 ? word : `${word}s`;
+}
+
+function getDocIcon(doc) {
+  return normalizeIcon(doc?.icon) || DEFAULT_DOC_ICON;
+}
+
+function normalizeIcon(icon) {
+  if (!icon) {
+    return "";
+  }
+
+  if (typeof icon === "string") {
+    return icon.startsWith("http") ? "" : icon;
+  }
+
+  if (typeof icon !== "object") {
+    return "";
+  }
+
+  if (typeof icon.emoji === "string") {
+    return icon.emoji;
+  }
+
+  if (typeof icon.name === "string" && !icon.name.startsWith("http")) {
+    return icon.name;
+  }
+
+  if (typeof icon.value === "string" && !icon.value.startsWith("http")) {
+    return icon.value;
+  }
+
+  return "";
 }
 
 function hasCacheForCurrentToken() {
@@ -547,12 +610,16 @@ function validate(settings) {
     return "Coda API token is required.";
   }
 
+  if (!settings.savedLocationId) {
+    return "Select a saved location.";
+  }
+
   if (!settings.docId) {
-    return "Select a Coda doc.";
+    return "Selected saved location is missing a Coda doc.";
   }
 
   if (!settings.tableId) {
-    return "Select a Coda table.";
+    return "Selected saved location is missing a Coda table.";
   }
 
   return "";
@@ -591,6 +658,7 @@ function setLoading(isLoading) {
   const isBusy = isSavingBookmark || isLoadingDocs || isLoadingTables;
   submitButton.disabled = isBusy;
   settingsButton.disabled = isBusy;
+  locationsButton.disabled = isBusy;
   refreshDocsButton.disabled = isBusy;
   saveLocationButton.disabled = isBusy;
   fields.savedLocationName.disabled = isBusy;
@@ -610,6 +678,7 @@ function setDiscoveryLoading({ docs = isLoadingDocs, tables = isLoadingTables })
   fields.tableId.disabled = isBusy || fields.tableId.options.length <= 1;
   fields.savedLocationName.disabled = isBusy;
   settingsButton.disabled = isBusy;
+  locationsButton.disabled = isBusy;
   fields.savedLocationId.disabled = isBusy || fields.savedLocationId.options.length <= 1;
   refreshDocsButton.disabled = isBusy;
   saveLocationButton.disabled = isBusy;

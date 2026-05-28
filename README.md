@@ -105,28 +105,33 @@ Enter:
 
 The Settings panel opens automatically if you try to save or refresh without the required backend settings.
 
-## First-Time Doc And Table Setup
+## First-Time Location Setup
 
 After entering a Coda API token:
 
-1. Click **Refresh** beside the Coda doc dropdown.
-2. The extension fetches every Coda doc available to the token.
-3. For each doc, it also fetches the tables in that doc.
-4. The discovered docs and tables are cached locally.
-5. Select the desired Coda doc.
-6. Select the desired Coda table.
+1. Click **Locations** next to the **Save to Coda** title.
+2. Click **Refresh** beside the Coda doc dropdown.
+3. The extension fetches every Coda doc available to the token.
+4. For each doc, it also fetches the tables in that doc.
+5. The discovered docs and tables are cached locally.
+6. Select the desired Coda doc.
+7. Select the desired Coda table.
+8. Enter a friendly name under **Save current location**.
+9. Click **Save**.
 
-Opening the popup later uses the local cache. The extension does not call the Coda docs/tables APIs again unless you click **Refresh**.
+Opening the popup later uses the local cache. The extension does not call the Coda docs/tables APIs again unless you click **Refresh** in the Locations panel.
 
 ## Save A Bookmark
 
 1. Open a normal webpage tab.
 2. Open the extension popup.
 3. Confirm the displayed active URL.
-4. Choose a Coda doc and table.
+4. Choose a named destination from **Saved location**.
 5. Click **Save bookmark**.
 
 On success, the popup closes automatically.
+
+The main popup only exposes saved locations. Create or update destinations from the **Locations** panel to keep the day-to-day save flow uncluttered.
 
 The extension sends this JSON body to the backend:
 
@@ -168,25 +173,28 @@ The bookmark API key is never placed in the request body or query string. The Co
 
 ## Saved Locations
 
-Saved locations let you reuse common Coda destinations.
+Saved locations let you reuse common Coda destinations without keeping raw doc and table selectors on the main popup.
 
 To create one:
 
-1. Select a Coda doc.
-2. Select a Coda table.
-3. Enter a name under **Save current location**, for example:
+1. Open **Locations**.
+2. Click **Refresh** if docs and tables have not been loaded yet, or if you need to update the local cache.
+3. Select the desired Coda doc.
+4. Select the desired Coda table.
+5. Enter a name under **Save current location**, for example:
 
    ```text
    Wishlist
    ```
 
-4. Click **Save**.
+6. Click **Save**.
 
 To use one:
 
-1. Open the **Saved location** dropdown.
-2. Choose the saved destination.
-3. The popup switches the doc and table selectors to that saved location.
+1. Return to the main popup.
+2. Open the **Saved location** dropdown.
+3. Choose the saved destination.
+4. Click **Save bookmark**.
 
 Saved locations are tied to the current Coda token fingerprint, so locations from one token are not shown for another token.
 
@@ -199,6 +207,7 @@ The extension uses Chrome extension storage:
   - `bookmarkApiKey`
   - `codaToken`
   - `docId`
+  - `savedLocationId`
   - `tableId`
 
 - `chrome.storage.local`

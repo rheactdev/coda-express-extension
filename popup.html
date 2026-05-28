@@ -11,15 +11,26 @@
       <header class="header">
         <div class="title-row">
           <h1>Save to Coda</h1>
-          <button
-            id="settingsButton"
-            class="settings-button"
-            type="button"
-            aria-expanded="false"
-            aria-controls="settingsPanel"
-          >
-            Settings
-          </button>
+          <div class="header-actions">
+            <button
+              id="locationsButton"
+              class="header-button"
+              type="button"
+              aria-expanded="false"
+              aria-controls="locationsPanel"
+            >
+              Locations
+            </button>
+            <button
+              id="settingsButton"
+              class="header-button"
+              type="button"
+              aria-expanded="false"
+              aria-controls="settingsPanel"
+            >
+              Settings
+            </button>
+          </div>
         </div>
         <p id="currentUrl" class="url">Loading current tab...</p>
       </header>
@@ -61,24 +72,42 @@
           </label>
         </section>
 
-        <div class="field-with-action">
-          <label for="docId">
-            Coda doc
-          </label>
-          <div class="control-row">
-            <select id="docId" name="docId" required disabled>
-              <option value="">Enter a token to load docs</option>
-            </select>
-            <button id="refreshDocsButton" class="secondary-button" type="button">Refresh</button>
+        <section id="locationsPanel" class="settings-panel" hidden>
+          <div class="field-with-action">
+            <label for="docId">
+              Coda doc
+            </label>
+            <div class="control-row">
+              <select id="docId" name="docId" disabled>
+                <option value="">Enter a token to load docs</option>
+              </select>
+              <button id="refreshDocsButton" class="secondary-button" type="button">Refresh</button>
+            </div>
           </div>
-        </div>
 
-        <label>
-          Coda table
-          <select id="tableId" name="tableId" required disabled>
-            <option value="">Select a doc first</option>
-          </select>
-        </label>
+          <label>
+            Coda table
+            <select id="tableId" name="tableId" disabled>
+              <option value="">Select a doc first</option>
+            </select>
+          </label>
+
+          <div class="field-with-action">
+            <label for="savedLocationName">
+              Save current location
+            </label>
+            <div class="control-row">
+              <input
+                id="savedLocationName"
+                name="savedLocationName"
+                type="text"
+                placeholder="Wishlist, Reading list..."
+                autocomplete="off"
+              >
+              <button id="saveLocationButton" class="secondary-button" type="button">Save</button>
+            </div>
+          </div>
+        </section>
 
         <label>
           Saved location
@@ -86,22 +115,6 @@
             <option value="">No saved locations</option>
           </select>
         </label>
-
-        <div class="field-with-action">
-          <label for="savedLocationName">
-            Save current location
-          </label>
-          <div class="control-row">
-            <input
-              id="savedLocationName"
-              name="savedLocationName"
-              type="text"
-              placeholder="Wishlist, Reading list..."
-              autocomplete="off"
-            >
-            <button id="saveLocationButton" class="secondary-button" type="button">Save</button>
-          </div>
-        </div>
 
         <button id="submitButton" type="submit">Save bookmark</button>
       </form>
