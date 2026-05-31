@@ -1,115 +1,88 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Coda Express Clipper</title>
-    <link rel="stylesheet" href="output.css">
-  </head>
-  <body class="w-[360px] min-h-[460px] bg-base-200 text-base-content">
-    <main class="grid gap-4 p-4">
-      <header class="grid gap-2">
-        <div class="flex items-center justify-between gap-3">
-          <h1 class="text-xl font-bold leading-tight">Save to Coda</h1>
-          <div class="join">
-            <button
-              id="locationsButton"
-              class="btn btn-soft btn-primary btn-xs join-item"
-              type="button"
-              aria-expanded="false"
-              aria-controls="locationsPanel"
-            >
-              Forms
-            </button>
-            <button
-              id="settingsButton"
-              class="btn btn-soft btn-primary btn-xs join-item"
-              type="button"
-              aria-expanded="false"
-              aria-controls="settingsPanel"
-            >
-              Settings
-            </button>
-          </div>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Coda Express Clipper</title>
+  <link rel="stylesheet" href="output.css">
+</head>
+
+<body class="w-[360px] min-h-[460px] bg-base-200 text-base-content">
+  <main class="grid gap-4 p-4">
+    <header class="grid gap-2">
+      <div class="flex items-center justify-between gap-3">
+        <h1 class="text-xl font-bold leading-tight">Save to Coda</h1>
+        <div class="join">
+          <button id="refreshDocsButton" class="btn btn-soft btn-primary btn-xs join-item" type="button">
+            Refresh
+          </button>
+          <button id="locationsButton" class="btn btn-soft btn-primary btn-xs join-item" type="button"
+            aria-expanded="false" aria-controls="locationsPanel">
+            Forms
+          </button>
+          <button id="settingsButton" class="btn btn-soft btn-primary btn-xs join-item" type="button"
+            aria-expanded="false" aria-controls="settingsPanel">
+            Settings
+          </button>
         </div>
-        <p id="currentUrl" class="line-clamp-2 [overflow-wrap:anywhere] text-xs leading-snug text-base-content/70">Loading current tab...</p>
-      </header>
+      </div>
+      <p id="currentUrl" class="line-clamp-2 [overflow-wrap:anywhere] text-xs leading-snug text-base-content/70">Loading
+        current tab...</p>
+    </header>
 
-      <form id="clipForm" class="grid gap-3">
-        <section id="settingsPanel" class="card bg-base-100 shadow-sm" hidden>
-          <div class="card-body gap-3 p-3">
-            <label class="grid gap-1">
-              <span class="label pb-1">
-                <span class="text-xs font-semibold">Backend URL</span>
-              </span>
-              <input
-                id="backendBaseUrl"
-                class="input input-sm w-full"
-                name="backendBaseUrl"
-                type="url"
-                placeholder="http://localhost:3000"
-                autocomplete="url"
-                required
-              >
+    <form id="clipForm" class="grid gap-3">
+      <section id="settingsPanel" class="card bg-base-100 shadow-sm" hidden>
+        <div class="card-body gap-3 p-3">
+          <label class="grid gap-1">
+            <span class="label pb-1">
+              <span class="text-xs font-semibold">Backend URL</span>
+            </span>
+            <input id="backendBaseUrl" class="input input-sm w-full" name="backendBaseUrl" type="url"
+              placeholder="http://localhost:3000" autocomplete="url" required>
+          </label>
+
+          <label class="grid gap-1">
+            <span class="label pb-1">
+              <span class="text-xs font-semibold">Bookmark API key</span>
+            </span>
+            <input id="bookmarkApiKey" class="input input-sm w-full" name="bookmarkApiKey" type="password"
+              placeholder="Private API key" autocomplete="off">
+          </label>
+
+          <label class="grid gap-1">
+            <span class="label pb-1">
+              <span class="text-xs font-semibold">Coda API token</span>
+            </span>
+            <input id="codaToken" class="input input-sm w-full" name="codaToken" type="password" placeholder="coda-..."
+              autocomplete="off">
+          </label>
+        </div>
+      </section>
+
+      <section id="locationsPanel" class="card bg-base-100 shadow-sm" hidden>
+        <div class="card-body gap-3 p-3">
+          <div class="grid gap-1">
+            <label class="label pb-1" for="savedLocationName">
+              <span class="text-xs font-semibold">Form Name</span>
             </label>
-
-            <label class="grid gap-1">
-              <span class="label pb-1">
-                <span class="text-xs font-semibold">Bookmark API key</span>
-              </span>
-              <input
-                id="bookmarkApiKey"
-                class="input input-sm w-full"
-                name="bookmarkApiKey"
-                type="password"
-                placeholder="Private API key"
-                autocomplete="off"
-              >
-            </label>
-
-            <label class="grid gap-1">
-              <span class="label pb-1">
-                <span class="text-xs font-semibold">Coda API token</span>
-              </span>
-              <input
-                id="codaToken"
-                class="input input-sm w-full"
-                name="codaToken"
-                type="password"
-                placeholder="coda-..."
-                autocomplete="off"
-              >
-            </label>
-          </div>
-        </section>
-
-        <section id="locationsPanel" class="card bg-base-100 shadow-sm" hidden>
-          <div class="card-body gap-3 p-3">
-            <div class="grid gap-1">
-              <label class="label pb-1" for="savedLocationName">
-                <span class="text-xs font-semibold">Form Name</span>
-              </label>
-              <div class="join w-full">
-                <input
-                  id="savedLocationName"
-                  class="input input-sm min-w-0 flex-1 join-item"
-                  name="savedLocationName"
-                  type="text"
-                  placeholder="Wishlist, Reading list..."
-                  autocomplete="off"
-                >
-                <button id="saveLocationButton" class="btn btn-soft btn-primary btn-sm join-item" type="button">Save</button>
-              </div>
+            <div class="join w-full">
+              <input id="savedLocationName" class="input input-sm min-w-0 flex-1 join-item" name="savedLocationName"
+                type="text" placeholder="Wishlist, Reading list..." autocomplete="off">
+              <button id="saveLocationButton" class="btn btn-soft btn-primary btn-sm join-item"
+                type="button">Save</button>
+              <button id="deleteLocationButton" class="btn btn-soft btn-error btn-sm join-item"
+                type="button" title="Delete Form">
+                <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+              </button>
+            </div>
             <div class="grid gap-1">
               <label class="label pb-1" for="docId">
                 <span class="text-xs font-semibold">Coda doc</span>
               </label>
-              <div class="join w-full">
-                <select id="docId" class="select select-sm min-w-0 flex-1 join-item" name="docId" disabled>
-                  <option value="">Enter a token to load docs</option>
-                </select>
-                <button id="refreshDocsButton" class="btn btn-soft btn-primary btn-sm join-item" type="button">Refresh</button>
-              </div>
+              <select id="docId" class="select select-sm w-full" name="docId" disabled>
+                <option value="">Enter a token to load docs</option>
+              </select>
             </div>
 
             <label class="grid gap-1">
@@ -121,26 +94,61 @@
               </select>
             </label>
 
-            
+            <div class="grid gap-2">
+              <button id="addFieldButton" class="btn btn-soft btn-sm" type="button" aria-expanded="false"
+                aria-controls="databasePropertiesMenu">
+                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="1.2em" height="1.2em"
+                  viewBox="0,0,256,256">
+                  <g fill="currentColor" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt"
+                    stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0"
+                    font-family="none" font-weight="none" font-size="none" text-anchor="none"
+                    style="mix-blend-mode: normal">
+                    <g transform="scale(10.66667,10.66667)">
+                      <path
+                        d="M18,21h-12c-1.657,0 -3,-1.343 -3,-3v-12c0,-1.657 1.343,-3 3,-3h12c1.657,0 3,1.343 3,3v12c0,1.657 -1.343,3 -3,3z"
+                        opacity="0.35"></path>
+                      <path
+                        d="M17,11h-4v-4c0,-0.552 -0.448,-1 -1,-1c-0.552,0 -1,0.448 -1,1v4h-4c-0.552,0 -1,0.448 -1,1c0,0.552 0.448,1 1,1h4v4c0,0.552 0.448,1 1,1c0.552,0 1,-0.448 1,-1v-4h4c0.552,0 1,-0.448 1,-1c0,-0.552 -0.448,-1 -1,-1z">
+                      </path>
+                    </g>
+                  </g>
+                </svg>
+                Add New Field</button>
+
+              <div id="selectedProperties" class="flex flex-wrap gap-1"></div>
+
+              <div id="databasePropertiesMenu" class="card bg-base-100 shadow-md ring-1 ring-base-300" hidden>
+                <div class="card-body gap-2 p-3">
+                  <h2 class="text-sm font-bold text-base-content/70">Database Properties</h2>
+                  <div id="databasePropertiesList" class="grid gap-1"></div>
+                </div>
+              </div>
             </div>
+
           </div>
-        </section>
+        </div>
+      </section>
 
-        <label class="grid gap-1">
-          <span class="label pb-1">
-            <span class="text-xs font-semibold">Saved location</span>
-          </span>
-          <select id="savedLocationId" class="select select-sm w-full" name="savedLocationId" disabled>
-            <option value="">No saved locations</option>
-          </select>
-        </label>
+      <label class="grid gap-1">
+        <span class="label pb-1">
+          <span class="text-xs font-semibold">Saved location</span>
+        </span>
+        <select id="savedLocationId" class="select select-sm w-full" name="savedLocationId" disabled>
+          <option value="">No saved locations</option>
+        </select>
+      </label>
 
-        <button id="submitButton" class="btn btn-primary w-full" type="submit">Save bookmark</button>
-      </form>
+      <section id="manualProperties" class="grid gap-3" hidden></section>
 
-      <section id="status" class="alert min-h-11 [overflow-wrap:anywhere] bg-base-100 text-xs leading-snug text-base-content/70" role="status" aria-live="polite"></section>
-    </main>
+      <button id="submitButton" class="btn btn-primary w-full" type="submit">Save bookmark</button>
+    </form>
 
-    <script src="popup.js"></script>
-  </body>
+    <section id="status"
+      class="alert min-h-11 [overflow-wrap:anywhere] bg-base-100 text-xs leading-snug text-base-content/70"
+      role="status" aria-live="polite"></section>
+  </main>
+
+  <script src="popup.js"></script>
+</body>
+
 </html>

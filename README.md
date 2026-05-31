@@ -139,7 +139,13 @@ The extension sends this JSON body to the backend:
 {
   "url": "https://example.com/page",
   "docId": "coda-doc-id",
-  "tableId": "grid-table-id"
+  "tableId": "grid-table-id",
+  "properties": {
+    "name": "Example title",
+    "url": "https://example.com/reference",
+    "date": "2026-05-28",
+    "tags": ["research", "wishlist"]
+  }
 }
 ```
 
@@ -165,9 +171,17 @@ Body:
 {
   "url": "https://example.com/page",
   "docId": "coda-doc-id",
-  "tableId": "grid-table-id"
+  "tableId": "grid-table-id",
+  "properties": {
+    "name": "Example title",
+    "url": "https://example.com/reference",
+    "date": "2026-05-28",
+    "tags": ["research", "wishlist"]
+  }
 }
 ```
+
+`properties` contains the manual values entered in the popup for the selected saved location. Only the properties configured for that saved location are included. Multi-select and multi-relation properties are entered as chip/token inputs and sent as arrays.
 
 The bookmark API key is never placed in the request body or query string. The Coda token is never placed in the request body or query string.
 
@@ -213,6 +227,8 @@ The extension uses Chrome extension storage:
 - `chrome.storage.local`
   - `codaDiscoveryCache`: cached Coda docs and tables.
   - `codaSavedLocations`: named doc/table destinations.
+  - `codaSelectedDatabaseProperties`: draft selected database properties while creating or editing a location.
+  - `codaManualPropertyValues`: manual property values keyed by saved location.
 
 Sensitive values are stored only in Chrome extension storage and are sent only as request headers.
 
