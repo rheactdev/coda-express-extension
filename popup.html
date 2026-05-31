@@ -139,13 +139,18 @@
       </label>
 
       <section id="manualProperties" class="grid gap-3" hidden></section>
+      
+      <div class="mt-2 p-3 bg-base-300 rounded-lg overflow-x-auto text-xs font-mono shadow-inner border border-base-content/10">
+        <div class="font-bold mb-2 text-base-content/50 uppercase tracking-wider text-[10px]">API Request Preview</div>
+        <pre id="apiPreview" class="whitespace-pre-wrap break-all text-base-content/80">{}</pre>
+      </div>
 
-      <button id="submitButton" class="btn btn-primary w-full" type="submit">Save bookmark</button>
+      <button id="submitButton" class="btn btn-primary w-full shadow-sm" type="submit">Save bookmark</button>
     </form>
 
     <section id="status"
       class="alert min-h-11 [overflow-wrap:anywhere] bg-base-100 text-xs leading-snug text-base-content/70"
-      role="status" aria-live="polite"></section>
+      role="status" aria-live="polite" hidden></section>
   </main>
 
   <script src="popup.js"></script>

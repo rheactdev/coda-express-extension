@@ -54,7 +54,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadManualPropertyValues(),
     loadCurrentTab(),
   ]);
+  
+  updateApiPreview();
+
   form.addEventListener("submit", handleSubmit);
+  form.addEventListener("input", updateApiPreview);
+  form.addEventListener("change", updateApiPreview);
   settingsButton.addEventListener("click", toggleSettingsPanel);
   locationsButton.addEventListener("click", toggleLocationsPanel);
   refreshDocsButton.addEventListener("click", refreshDiscoveryCache);
@@ -676,12 +681,14 @@ function renderManualProperties(location = findSavedLocation(fields.savedLocatio
 
   if (!location) {
     manualPropertiesEl.hidden = true;
+    updateApiPreview();
     return;
   }
 
   const selectedProperties = normalizeSelectedProperties(location.selectedProperties);
   if (!selectedProperties.length) {
     manualPropertiesEl.hidden = true;
+    updateApiPreview();
     return;
   }
 
@@ -695,6 +702,8 @@ function renderManualProperties(location = findSavedLocation(fields.savedLocatio
 
     manualPropertiesEl.append(buildManualPropertyField(property, location.id));
   }
+  
+  updateApiPreview();
 }
 
 function buildManualPropertyField(property, locationId) {
@@ -762,10 +771,11 @@ function buildTokenInput(property, locationId) {
   input.autocomplete = "off";
 
   inputWrapper.append(input);
+  inputWrapper.addEventListener("click", () => input.focus());
   area.append(inputWrapper);
 
   const dropdown = document.createElement("ul");
-  dropdown.className = "absolute z-50 mt-1 max-h-52 w-full overflow-auto rounded-md border border-base-300 bg-base-100 py-1 shadow-lg dropdown-menu";
+  dropdown.className = "absolute z-[100] mt-1 max-h-52 w-full overflow-y-auto rounded-md border border-base-300 bg-base-100 py-1 shadow-xl";
   dropdown.hidden = true;
   area.append(dropdown);
 
@@ -779,7 +789,7 @@ function bindAutocomplete(input, dropdown, property) {
   let menuItems = [];
 
   function getSuggestions(draft) {
-    const allOptions = discoveryCache?.optionsByColumnId?.[property.id] || [];
+    const allOptions = (discoveryCache?.optionsByColumnId?.[property.id] || []).filter(Boolean).map(String);
     const currentValues = getManualPropertyArrayValue(property.id);
     const normalizedDraft = normalizeValue(draft);
     const lowerDraft = normalizedDraft.toLowerCase();
@@ -790,9 +800,22 @@ function bindAutocomplete(input, dropdown, property) {
       return item.toLowerCase().includes(lowerDraft);
     });
 
+    if (lowerDraft) {
+      filtered.sort((a, b) => {
+        const aStarts = a.toLowerCase().startsWith(lowerDraft);
+        const bStarts = b.toLowerCase().startsWith(lowerDraft);
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+        return a.localeCompare(b);
+      });
+    }
+    
+    filtered = filtered.slice(0, 3);
+
     const canCreate = normalizedDraft.length > 0 && 
                       !filtered.some(item => isSameValue(item, normalizedDraft)) && 
-                      !currentValues.some(item => isSameValue(item, normalizedDraft));
+                      !currentValues.some(item => isSameValue(item, normalizedDraft)) &&
+                      !allOptions.some(item => isSameValue(item, normalizedDraft));
 
     return canCreate ? [...filtered, null] : filtered;
   }
@@ -817,10 +840,17 @@ function bindAutocomplete(input, dropdown, property) {
       
       li.addEventListener("mouseenter", () => {
         highlightIndex = index;
-        renderDropdown(draft);
+        const currentActive = dropdown.querySelector("li.bg-primary\\/10");
+        if (currentActive) {
+          currentActive.classList.remove("bg-primary/10", "text-primary");
+          currentActive.classList.add("text-base-content", "hover:bg-base-200");
+        }
+        li.classList.remove("text-base-content", "hover:bg-base-200");
+        li.classList.add("bg-primary/10", "text-primary");
       });
       li.addEventListener("mousedown", (e) => e.preventDefault());
-      li.addEventListener("click", async () => {
+      li.addEventListener("click", async (e) => {
+        e.preventDefault();
         await commitToken(item === null ? normalizeValue(draft) : item);
       });
       
@@ -838,10 +868,13 @@ function bindAutocomplete(input, dropdown, property) {
     if (!nextToken) return;
 
     const propertyId = input.dataset.manualPropertyId;
-    const values = getManualPropertyArrayValue(propertyId);
+    let values = getManualPropertyArrayValue(propertyId);
     if (values.some(item => isSameValue(item, nextToken))) return;
 
-    await setManualPropertyValue(propertyId, [...values, nextToken]);
+    const allowsMultiple = Boolean(property.isMulti || property.multiselect || property.multiSelect || property.multiple || property.allowMultiple || property.allowsMultiple);
+    values = allowsMultiple ? [...values, nextToken] : [nextToken];
+
+    await setManualPropertyValue(propertyId, values);
     renderManualProperties();
     
     setTimeout(() => {
@@ -934,7 +967,7 @@ function getManualPropertyPlaceholder(propertyId) {
 
 async function commitTokenInput(input) {
   const propertyId = input.dataset.manualPropertyId;
-  const nextToken = normalizeManualValue(input.value);
+  const nextToken = normalizeValue(input.value);
   input.value = "";
 
   if (!nextToken) {
@@ -991,6 +1024,21 @@ function getManualPropertyValuesForLocation(locationId) {
   return values;
 }
 
+function updateApiPreview() {
+  const apiPreview = document.getElementById("apiPreview");
+  if (!apiPreview) return;
+  const settings = getSettings();
+  
+  const payload = {
+    url: currentTabUrl || "Loading...",
+    docId: settings.docId || "",
+    tableId: settings.tableId || "",
+    properties: settings.savedLocationId ? getManualPropertyValuesForLocation(settings.savedLocationId) : {}
+  };
+  
+  apiPreview.textContent = JSON.stringify(payload, null, 2);
+}
+
 function getManualPropertyScalarValue(propertyId) {
   const values = getManualPropertyValuesForLocation(fields.savedLocationId.value);
   return typeof values[propertyId] === "string" ? values[propertyId] : "";
@@ -1011,7 +1059,7 @@ function isMultiValueProperty(property) {
   }
 
   const type = String(property.type ?? property.kind ?? property.displayType ?? "").toLowerCase();
-  const isSelectOrRelation = type.includes("select") || type.includes("relation");
+  const isSelectOrRelation = type.includes("select") || type.includes("relation") || type.includes("lookup") || type.includes("person");
   const allowsMultiple = Boolean(
     property.isMulti ||
     property.multiselect ||
@@ -1037,12 +1085,12 @@ function normalizeSelectedProperties(properties) {
   return [...new Set(properties.filter((propertyId) => allowedIds.has(propertyId)))];
 }
 
-function normalizeManualValue(value) {
-  return value.trim().replace(/\s+/g, " ");
+function normalizeValue(value) {
+  return String(value || "").trim().replace(/\s+/g, " ");
 }
 
 function isSameValue(left, right) {
-  return left.localeCompare(right, undefined, { sensitivity: "accent" }) === 0;
+  return String(left || "").localeCompare(String(right || ""), undefined, { sensitivity: "accent" }) === 0;
 }
 
 function isPlainObject(value) {
@@ -1153,13 +1201,13 @@ async function loadTableSchema(docId, tableId) {
     const columns = await fetchAllCodaItems(`${CODA_API_BASE_URL}/docs/${encodeURIComponent(docId)}/tables/${encodeURIComponent(tableId)}/columns`, token);
     
     DATABASE_PROPERTIES = columns.map(col => {
-      const type = String(col.displayType ?? col.type ?? "").toLowerCase();
+      const type = String(col.format?.type ?? col.displayType ?? col.type ?? "").toLowerCase();
       return {
         id: col.id,
         label: col.name,
-        icon: type === "text" ? "Aa" : type === "url" ? "🔗" : type === "date" ? "▣" : "↗",
+        icon: type === "text" ? "Aa" : type === "url" || type === "link" ? "🔗" : type.includes("date") ? "▣" : "↗",
         type: type,
-        isMulti: Boolean(col.format?.isArray || type.includes("select") || type.includes("lookup") || type.includes("person")),
+        isMulti: Boolean(col.format?.isArray || type.includes("select") || type.includes("lookup") || type.includes("person") || type.includes("relation")),
         format: col.format
       };
     });
@@ -1168,11 +1216,13 @@ async function loadTableSchema(docId, tableId) {
     discoveryCache.columnsByTableId[tableId] = DATABASE_PROPERTIES;
     
     for (const prop of DATABASE_PROPERTIES) {
-      if (prop.type.includes("lookup") && prop.format?.table?.id) {
+      const isRelation = prop.type.includes("lookup") || prop.type.includes("relation") || prop.type.includes("person");
+      const targetTableId = prop.format?.table?.id || prop.format?.targetTableId;
+
+      if (isRelation && targetTableId) {
         if (!discoveryCache.optionsByColumnId) discoveryCache.optionsByColumnId = {};
         if (!discoveryCache.optionsByColumnId[prop.id]) {
           try {
-            const targetTableId = prop.format.table.id;
             const rows = await fetchAllCodaItems(`${CODA_API_BASE_URL}/docs/${encodeURIComponent(docId)}/tables/${encodeURIComponent(targetTableId)}/rows?useColumnNames=true`, token);
             discoveryCache.optionsByColumnId[prop.id] = rows.map(r => r.name);
           } catch (e) {
@@ -1189,6 +1239,20 @@ async function loadTableSchema(docId, tableId) {
     await saveDiscoveryCache(discoveryCache);
 
     setStatus("Loaded table columns.", "success");
+    
+    let debugArea = document.querySelector("#debugArea");
+    if (!debugArea) {
+      debugArea = document.createElement("textarea");
+      debugArea.id = "debugArea";
+      debugArea.className = "w-full p-2 mt-4 text-xs font-mono border rounded";
+      debugArea.rows = 10;
+      document.querySelector("main").appendChild(debugArea);
+    }
+    debugArea.value = JSON.stringify({
+      options: discoveryCache.optionsByColumnId,
+      props: DATABASE_PROPERTIES.map(p => ({id: p.id, type: p.type, format: p.format}))
+    }, null, 2);
+
   } catch (error) {
     setStatus(toSafeErrorMessage(error), "error");
     DATABASE_PROPERTIES = [];
