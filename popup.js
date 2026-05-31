@@ -147,7 +147,7 @@ async function handleSubmit(event) {
         url: currentTabUrl,
         docId: settings.docId,
         tableId: settings.tableId,
-        properties: getManualPropertyValuesForLocation(settings.savedLocationId),
+        properties: getManualPropertyValuesForLocation(settings.savedLocationId, true),
       }),
     });
 
@@ -746,18 +746,21 @@ function buildTokenInput(property, locationId) {
 
   for (const token of getManualPropertyArrayValue(property.id)) {
     const chip = document.createElement("span");
-    chip.className = "badge badge-soft gap-1";
-    chip.textContent = token;
+    chip.className = "badge badge-soft gap-1 max-w-full";
+    
+    const textSpan = document.createElement("span");
+    textSpan.className = "truncate";
+    textSpan.textContent = token;
 
     const removeButton = document.createElement("button");
-    removeButton.className = "btn btn-ghost btn-xs h-4 min-h-0 px-1";
+    removeButton.className = "btn btn-ghost btn-xs h-4 min-h-0 px-1 shrink-0";
     removeButton.type = "button";
     removeButton.dataset.manualPropertyId = property.id;
     removeButton.dataset.removeToken = token;
     removeButton.textContent = "×";
     removeButton.setAttribute("aria-label", `Remove ${token}`);
 
-    chip.append(removeButton);
+    chip.append(textSpan, removeButton);
     inputWrapper.append(chip);
   }
 
@@ -775,7 +778,8 @@ function buildTokenInput(property, locationId) {
   area.append(inputWrapper);
 
   const dropdown = document.createElement("ul");
-  dropdown.className = "absolute z-[100] mt-1 max-h-52 w-full overflow-y-auto rounded-md border border-base-300 bg-base-100 py-1 shadow-xl";
+  dropdown.className = "absolute mt-1 max-h-52 w-full overflow-y-auto rounded-md border border-base-300 bg-base-100 py-1 shadow-xl";
+  dropdown.style.zIndex = "100";
   dropdown.hidden = true;
   area.append(dropdown);
 
@@ -830,7 +834,7 @@ function bindAutocomplete(input, dropdown, property) {
     dropdown.replaceChildren();
     menuItems.forEach((item, index) => {
       const li = document.createElement("li");
-      li.className = `cursor-pointer px-3 py-2 text-sm transition-colors ${index === highlightIndex ? "bg-primary/10 text-primary" : "text-base-content hover:bg-base-200"}`;
+      li.className = `cursor-pointer px-3 py-2 text-sm transition-colors break-words ${index === highlightIndex ? "bg-primary/10 text-primary" : "text-base-content hover:bg-base-200"}`;
       
       if (item === null) {
         li.innerHTML = `Create &ldquo;<span>${escapeHtml(normalizeValue(draft))}</span>&rdquo;`;
@@ -871,8 +875,7 @@ function bindAutocomplete(input, dropdown, property) {
     let values = getManualPropertyArrayValue(propertyId);
     if (values.some(item => isSameValue(item, nextToken))) return;
 
-    const allowsMultiple = Boolean(property.isMulti || property.multiselect || property.multiSelect || property.multiple || property.allowMultiple || property.allowsMultiple);
-    values = allowsMultiple ? [...values, nextToken] : [nextToken];
+    values = [...values, nextToken];
 
     await setManualPropertyValue(propertyId, values);
     renderManualProperties();
@@ -1001,7 +1004,7 @@ async function setManualPropertyValue(propertyId, value) {
   await saveManualPropertyValues();
 }
 
-function getManualPropertyValuesForLocation(locationId) {
+function getManualPropertyValuesForLocation(locationId, useLabels = false) {
   const location = findSavedLocation(locationId);
   if (!location) {
     return {};
@@ -1013,12 +1016,16 @@ function getManualPropertyValuesForLocation(locationId) {
 
   for (const propertyId of selectedProperties) {
     const property = getDatabaseProperty(propertyId);
+    if (!property) continue;
+
+    const key = useLabels ? property.label : propertyId;
+
     if (isMultiValueProperty(property)) {
-      values[propertyId] = Array.isArray(storedValues[propertyId]) ? storedValues[propertyId] : [];
+      values[key] = Array.isArray(storedValues[propertyId]) ? storedValues[propertyId] : [];
       continue;
     }
 
-    values[propertyId] = typeof storedValues[propertyId] === "string" ? storedValues[propertyId].trim() : "";
+    values[key] = typeof storedValues[propertyId] === "string" ? storedValues[propertyId].trim() : "";
   }
 
   return values;
@@ -1033,7 +1040,7 @@ function updateApiPreview() {
     url: currentTabUrl || "Loading...",
     docId: settings.docId || "",
     tableId: settings.tableId || "",
-    properties: settings.savedLocationId ? getManualPropertyValuesForLocation(settings.savedLocationId) : {}
+    properties: settings.savedLocationId ? getManualPropertyValuesForLocation(settings.savedLocationId, true) : {}
   };
   
   apiPreview.textContent = JSON.stringify(payload, null, 2);
