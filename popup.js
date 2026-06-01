@@ -793,7 +793,7 @@ function bindAutocomplete(input, dropdown, property) {
   let menuItems = [];
 
   function getSuggestions(draft) {
-    const allOptions = (discoveryCache?.optionsByColumnId?.[property.id] || []).filter(Boolean).map(String);
+    const allOptions = [...new Set((discoveryCache?.optionsByColumnId?.[property.id] || []).filter(Boolean).map(String))];
     const currentValues = getManualPropertyArrayValue(property.id);
     const normalizedDraft = normalizeValue(draft);
     const lowerDraft = normalizedDraft.toLowerCase();
