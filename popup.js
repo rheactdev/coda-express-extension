@@ -44,18 +44,42 @@ let manualPropertyValuesByLocation = {};
 let isSavingBookmark = false;
 let isLoadingDocs = false;
 let isLoadingTables = false;
+let areEventListenersBound = false;
 
 document.addEventListener("DOMContentLoaded", async () => {
-  await Promise.all([
-    loadSettings(),
-    loadDiscoveryCache(),
-    loadSavedLocations(),
-    loadSelectedDatabaseProperties(),
-    loadManualPropertyValues(),
-    loadCurrentTab(),
-  ]);
-  
-  updateApiPreview();
+  bindEventListeners();
+
+  try {
+    await Promise.all([
+      loadSettings(),
+      loadDiscoveryCache(),
+      loadSavedLocations(),
+      loadSelectedDatabaseProperties(),
+      loadManualPropertyValues(),
+      loadCurrentTab(),
+    ]);
+    
+    updateApiPreview();
+
+    renderDatabaseProperties();
+    renderSelectedProperties();
+    renderSavedLocations();
+    await applySavedLocation(findSavedLocation(fields.savedLocationId.value), { quiet: true });
+    if (fields.codaToken.value.trim()) {
+      renderCachedDocs({ quiet: true });
+    }
+  } catch (error) {
+    console.error(error);
+    setStatus(toSafeErrorMessage(error), "error");
+  }
+});
+
+function bindEventListeners() {
+  if (areEventListenersBound) {
+    return;
+  }
+
+  areEventListenersBound = true;
 
   form.addEventListener("submit", handleSubmit);
   form.addEventListener("input", updateApiPreview);
@@ -78,15 +102,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   manualPropertiesEl.addEventListener("input", handleManualPropertyInput);
   manualPropertiesEl.addEventListener("keydown", handleManualPropertyKeydown);
   manualPropertiesEl.addEventListener("click", handleManualPropertyClick);
-
-  renderDatabaseProperties();
-  renderSelectedProperties();
-  renderSavedLocations();
-  await applySavedLocation(findSavedLocation(fields.savedLocationId.value), { quiet: true });
-  if (fields.codaToken.value.trim()) {
-    renderCachedDocs({ quiet: true });
-  }
-});
+}
 
 async function loadSettings() {
   const stored = await chrome.storage.sync.get(SETTINGS_KEYS);
@@ -1400,6 +1416,7 @@ function setManualPropertiesDisabled(isDisabled) {
 
 function setStatus(message, state = "") {
   statusEl.textContent = message;
+  statusEl.hidden = !message;
   statusEl.className = getStatusClassName(state);
   if (state) {
     statusEl.dataset.state = state;
